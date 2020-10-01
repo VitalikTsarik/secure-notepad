@@ -22,11 +22,16 @@ const Header = () => {
         <div className="navbar-nav mr-auto">
           {user && (
             <li className="nav-item">
-              <Link to={"/dashboard"} className="nav-link">
-                Dashboard
+              <Link to={"/notepad"} className="nav-link">
+                Notepad
               </Link>
             </li>
           )}
+          <li className="nav-item">
+            <Link to={"/keys"} className="nav-link">
+              Keys
+            </Link>
+          </li>
         </div>
         {user ? (
           <div className="navbar-nav ml-auto">

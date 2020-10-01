@@ -3,7 +3,7 @@ import { decrypt, generateKey } from "js-crypto-rsa";
 import { ModeOfOperation, utils } from "aes-js";
 
 const API_URL = "http://localhost:8080/api/";
-const KEY_SIZE = 1024;
+const KEY_SIZE = 256;
 
 class SessionService {
   async generateKeys() {
@@ -16,21 +16,11 @@ class SessionService {
   }
 
   async getPrivateKey() {
-    let key = JSON.parse(localStorage.getItem("privateKey"));
-    if (!Boolean(key)) {
-      const {privateKey} = await this.generateKeys();
-      key = privateKey;
-    }
-    return key;
+    return JSON.parse(localStorage.getItem("privateKey"));
   }
 
   async getPublicKey() {
-    let key = JSON.parse(localStorage.getItem("publicKey"));
-    if (!Boolean(key)) {
-      const {publicKey} = await this.generateKeys();
-      key = publicKey;
-    }
-    return key;
+    return JSON.parse(localStorage.getItem("publicKey"));
   }
 
   async decrypt(message) {
