@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.delivery.entity.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepo extends JpaRepository<User, Long> {
 	Optional<User> findByLogin(String login);
 
 	Boolean existsByLogin(String login);
