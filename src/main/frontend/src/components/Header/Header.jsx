@@ -17,7 +17,7 @@ const Header = () => {
     <nav className="navbar navbar-expand-sm  navbar-dark bg-dark">
       <div className="container-md">
         <div className="navbar-brand">
-          DAP
+          Secure Notepad
         </div>
         <div className="navbar-nav mr-auto">
           {user && (

@@ -36,7 +36,7 @@ public class JwtUtils {
                 .setIssuedAt(new Date(clock.millis()))
                 .setExpiration(new Date(clock.millis() + jwtExpirationMs))
                 .addClaims(ImmutableMap.of("role", user.getRole().name()))
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(SignatureAlgorithm.ES256, jwtSecret)
                 .compact();
     }
 

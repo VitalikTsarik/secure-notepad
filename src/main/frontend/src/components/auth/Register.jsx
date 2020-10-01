@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
-import Select from "react-validation/build/select";
 import CheckButton from "react-validation/build/button";
 
 import AuthService from "../../services/auth.service";
@@ -12,10 +11,6 @@ export default class Register extends Component {
     super(props);
     this.state = {
       login: "",
-      firstName: "",
-      middleName: "",
-      lastName: "",
-      role: "",
       password: "",
       successful: false,
       message: ""
@@ -42,10 +37,6 @@ export default class Register extends Component {
     if (this.checkBtn.context._errors.length === 0) {
       AuthService.register(
         this.state.login,
-        this.state.firstName,
-        this.state.middleName,
-        this.state.lastName,
-        this.state.role,
         this.state.password,
       ).then(
         response => {
@@ -99,54 +90,6 @@ export default class Register extends Component {
                     onChange={(e) => this.handleChangeInput("login", e)}
                     validations={[required, username]}
                   />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="firstName">First Name</label>
-                  <Input
-                    type="text"
-                    className="form-control"
-                    name="firstName"
-                    value={this.state.firstName}
-                    onChange={(e) => this.handleChangeInput("firstName", e)}
-                    validations={[required]}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="middleName">Middle Name</label>
-                  <Input
-                    type="text"
-                    className="form-control"
-                    name="middleName"
-                    value={this.state.middleName}
-                    onChange={(e) => this.handleChangeInput("middleName", e)}
-                    validations={[required]}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="lastName">Last Name</label>
-                  <Input
-                    type="text"
-                    className="form-control"
-                    name="lastName"
-                    value={this.state.lastName}
-                    onChange={(e) => this.handleChangeInput("lastName", e)}
-                    validations={[required]}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="role">Role</label>
-                  <Select
-                    className="form-control"
-                    name="role"
-                    value={this.state.role}
-                    onChange={(e) => this.handleChangeInput("role", e)}
-                    validations={[required]}
-                  >
-                    <option value="">Choose your role</option>
-                    <option value="0">Cargo owner</option>
-                    <option value="1">Transporter</option>
-                    <option value="2">Manager</option>
-                  </Select>
                 </div>
                 <div className="form-group">
                   <label htmlFor="password">Password</label>
