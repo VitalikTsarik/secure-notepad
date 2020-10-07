@@ -12,14 +12,12 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
 public class MainControllerTest {
 
     @Test
     public void test() throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException {
         MainController controller = new MainController();
-        controller.getSessionKey("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCgFGVfrY4jQSoZQWWygZ83roKXWD4YeT2x2p41dGkPixe73rT2IW04glagN2vgoZoHuOPqa5and6kAmK2ujmCHu6D1auJhE2tXP+yLkpSiYMQucDKmCsWMnW9XlC5K7OSL77TXXcfvTvyZcjObEz6LIBRzs6+FqpFbUO9SJEfh6wIDAQAB");
+        controller.getSessionKey("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDVAFUAKu4ip9BhmdSwyuqE7dGjV1qzXurVBhIKtMDYksarlT6awnL08LVsEyDleVCuhWxBZtBGUw8GmL3EiDFeAxlKtX4xPAiGm1JLPFevggZbwD75nYVzYAOW57QfXReYFl++Fnjw+PLjHjP7jdLe6BawuuoT+DNEOBjSWh6HkQIDAQAB");
     }
 
 }
