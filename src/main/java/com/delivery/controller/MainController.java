@@ -3,7 +3,10 @@ package com.delivery.controller;
 import com.delivery.dto.SessionKeyRequest;
 import com.delivery.dto.SessionKeyResponse;
 import com.delivery.dto.TextDTO;
+import com.delivery.dto.TextsDTO;
+import com.delivery.entity.Text;
 import com.delivery.repository.SessionsRepo;
+import com.delivery.repository.TextRepo;
 import com.delivery.service.UserService;
 import com.delivery.util.RSAUtil;
 import org.slf4j.Logger;
@@ -31,6 +34,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -45,10 +49,11 @@ public class MainController {
     @Autowired
     private SessionsRepo sessionsRepo;
 
+    @Autowired
+    private TextRepo textRepo;
+
     @GetMapping("/sessionKey")
     public ResponseEntity<?> getSessionKey(@RequestParam String openRSAkey) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, UnsupportedEncodingException {
-        RSAUtil.encrypt("DATA", openRSAkey);
-
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         keyGenerator.init(256);
         SecretKey sessionKey = keyGenerator.generateKey();
@@ -63,6 +68,31 @@ public class MainController {
         sessionsRepo.getSecretKeyMap().put(response.getEncryptedSessionKey(), sessionKey);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/texts")
+    public ResponseEntity<?> getTexts() {
+        var texts = textRepo.findAll().stream().map(x -> {
+            var text = new TextsDTO.TextDTO();
+            text.setId(x.getId());
+            text.setName(x.getName());
+            return text;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(new TextsDTO(texts));
+    }
+
+    @GetMapping("/text")
+    public ResponseEntity<?> getText(@RequestParam String encryptedSessionKey, @RequestParam long textId) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
+        Text text = textRepo.findById(textId).get();
+
+        Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+
+        byte[] encrypted = cipher.doFinal(text.getText().getBytes());
+
+        return ResponseEntity.ok(Base64.getEncoder().encodeToString(encrypted));
     }
 
     @PostMapping("/text")

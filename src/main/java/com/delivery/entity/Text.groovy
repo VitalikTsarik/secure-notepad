@@ -15,6 +15,8 @@ class Text {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     final Long id
 
+    String name
+
     @ManyToOne
     User owner
 
