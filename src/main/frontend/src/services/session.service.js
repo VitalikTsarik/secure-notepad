@@ -1,6 +1,6 @@
 import axios from "axios";
 import { ModeOfOperation, utils } from "aes-js";
-import { JSEncrypt } from "../lib/jsencrypt";
+import { JSEncrypt } from "./lib/jsencrypt";
 
 const API_URL = "http://localhost:8080/api/";
 const KEY_SIZE = 1024;
