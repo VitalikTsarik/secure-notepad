@@ -1,15 +1,16 @@
 import axios from "axios";
-import { decrypt, generateKey } from "js-crypto-rsa";
 import { ModeOfOperation, utils } from "aes-js";
+import { JSEncrypt } from "../lib/jsencrypt";
 
 const API_URL = "http://localhost:8080/api/";
-const KEY_SIZE = 256;
+const KEY_SIZE = 1024;
 
 class SessionService {
   async generateKeys() {
-    const keys = await generateKey(KEY_SIZE);
-    const publicKey = keys.publicKey;
-    const privateKey = keys.privateKey;
+    const crypt = new JSEncrypt({default_key_size: KEY_SIZE});
+    crypt.getKey();
+    const privateKey = crypt.getPrivateKey();
+    const publicKey = crypt.getPublicKey();
     localStorage.setItem("privateKey", JSON.stringify(privateKey));
     localStorage.setItem("publicKey", JSON.stringify(publicKey));
     return {publicKey, privateKey};
@@ -24,9 +25,9 @@ class SessionService {
   }
 
   async decrypt(message) {
-    const decoder = new TextDecoder("utf-8");
-    const privateKey = await this.getPrivateKey();
-    return decoder.decode(await decrypt(message, privateKey));
+    const crypt = new JSEncrypt();
+    crypt.setPrivateKey(await this.getPrivateKey());
+    return crypt.decrypt(message);
   }
 
   async getSessionKey() {

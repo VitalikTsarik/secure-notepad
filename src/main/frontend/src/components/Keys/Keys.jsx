@@ -14,15 +14,15 @@ const Keys = () => {
     (async () => {
       const publicKey = await SessionService.getPublicKey();
       const privateKey = await SessionService.getPrivateKey();
-      setPublicKey(JSON.stringify(publicKey));
-      setPrivateKey(JSON.stringify(privateKey));
+      setPublicKey(publicKey);
+      setPrivateKey(privateKey);
     })();
   }, []);
 
   const handleClick = useCallback(async () => {
     const {publicKey, privateKey} = await SessionService.generateKeys();
-    setPublicKey(JSON.stringify(publicKey));
-    setPrivateKey(JSON.stringify(privateKey));
+    setPublicKey(publicKey);
+    setPrivateKey(privateKey);
     SessionService.getSessionKey();
   }, []);
 
@@ -31,11 +31,11 @@ const Keys = () => {
       <Jumbotron>
         <Form.Group controlId="exampleForm.ControlTextarea1">
           <Form.Label>Private Key</Form.Label>
-          <Form.Control as="textarea" rows="5" readOnly value={privateKey}/>
+          <Form.Control as="textarea" rows="15" readOnly value={privateKey}/>
         </Form.Group>
         <Form.Group controlId="exampleForm.ControlTextarea1">
           <Form.Label>Public Key</Form.Label>
-          <Form.Control as="textarea" rows="3" readOnly value={publicKey}/>
+          <Form.Control as="textarea" rows="6" readOnly value={publicKey}/>
         </Form.Group>
         <Button onClick={handleClick}>Generate</Button>
       </Jumbotron>

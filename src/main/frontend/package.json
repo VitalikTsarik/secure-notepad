@@ -17,7 +17,11 @@
     "react-router-dom": "^5.1.2",
     "react-scripts": "^3.4.3",
     "react-validation": "^3.0.7",
+    "typescript": "^4.0.3",
     "validator": "^12.2.0"
+  },
+  "devDependencies": {
+    "ts-loader": "^3.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -26,7 +30,10 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": "react-app",
+    "ignorePatterns": [
+      "src/lib"
+    ]
   },
   "browserslist": {
     "production": [
