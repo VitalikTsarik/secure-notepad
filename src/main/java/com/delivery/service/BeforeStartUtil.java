@@ -18,9 +18,12 @@ public class BeforeStartUtil {
     @Transactional
     public void addTexts() {
         Text text = new Text();
-        text.setName("RANDOM TEXT");
         text.setText("RAndom text random text random text random text random textrandom text random text random text////.../././.;;;");
         textRepo.save(text);
+
+        Text text1 = new Text();
+        text1.setText("Very-very-very-secret text.....");
+        textRepo.save(text1);
     }
 
 }

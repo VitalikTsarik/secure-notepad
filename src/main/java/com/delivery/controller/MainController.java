@@ -1,10 +1,12 @@
 package com.delivery.controller;
 
+import com.delivery.dto.DeleteTextRequest;
 import com.delivery.dto.SessionKeyRequest;
 import com.delivery.dto.SessionKeyResponse;
 import com.delivery.dto.SignInRequest;
 import com.delivery.dto.SignUpRequest;
 import com.delivery.dto.TextDTO;
+import com.delivery.dto.TextWithIdDTO;
 import com.delivery.dto.TextsDTO;
 import com.delivery.entity.Text;
 import com.delivery.entity.User;
@@ -18,8 +20,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,6 +36,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
@@ -45,6 +50,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api")
 public class MainController {
+
+    public final static IvParameterSpec IV_SPEC = new IvParameterSpec(new byte[]{21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,35, 36});
 
     private final static Logger logger = LoggerFactory.getLogger(MainController.class);
 
@@ -86,11 +93,8 @@ public class MainController {
 
     @GetMapping("/texts")
     public ResponseEntity<?> getTexts() {
-        List<TextsDTO.TextDTO> texts = textRepo.findAll().stream().map(x -> {
-            TextsDTO.TextDTO text = new TextsDTO.TextDTO();
-            text.setId(x.getId());
-            text.setName(x.getName());
-            return text;
+        List<Long> texts = textRepo.findAll().stream().map(x -> {
+            return x.getId();
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(new TextsDTO(texts));
@@ -102,7 +106,7 @@ public class MainController {
         Text text = textRepo.findById(textId).get();
 
         Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(new byte[]{21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,35, 36}));
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, IV_SPEC);
 
         byte[] encrypted = cipher.doFinal(text.getText().getBytes());
 
@@ -110,18 +114,37 @@ public class MainController {
     }
 
     @PostMapping("/text")
-    public ResponseEntity<?> postText(@RequestBody TextDTO textDTO) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    public ResponseEntity<?> postText(@RequestBody TextDTO textDTO) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
         SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(textDTO.getEncryptedSessionKey());
 
-//        // decode the base64 encoded string
-//        byte[] decodedKey = Base64.getDecoder().decode(RSAUtil.decrypt(textDTO.getEncryptedSessionKey(), publicRSAkey));
-//        // rebuild key using SecretKeySpec
-//        SecretKey originalKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
-
         Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
         String decryptedText = new String(cipher.doFinal(textDTO.getEncryptedText().getBytes()));
         logger.info("Decrypted text: " + decryptedText);
+        Text text = new Text();
+        text.setText(decryptedText);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/text")
+    public ResponseEntity<?> putText(@RequestBody TextWithIdDTO textDTO) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
+        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(textDTO.getEncryptedSessionKey());
+        Text text = textRepo.findById(textDTO.getId()).get();
+
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
+        String decryptedText = new String(cipher.doFinal(textDTO.getEncryptedText().getBytes()));
+        logger.info("Decrypted text: " + decryptedText);
+        text.setText(decryptedText);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/text")
+    public ResponseEntity<?> deleteText(@RequestBody DeleteTextRequest deleteTextRequest) {
+        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(deleteTextRequest.getEncryptedSessionKey());
+        textRepo.deleteById(deleteTextRequest.getId());
 
         return ResponseEntity.ok().build();
     }
