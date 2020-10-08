@@ -36,13 +36,14 @@ class SessionService {
       sessionKey = await axios
         .get(API_URL + "sessionKey", {
           data: {
-            publicKey: await this.getPublicKey(),
+            openRSAkey: await this.getPublicKey(),
           }
         })
         .then(response => {
           if (response.data.sessionKey) {
-            const encodedSessionKey = response.data;
-            return this.decrypt(encodedSessionKey);
+            const encryptedSessionKey = response.data;
+            localStorage.setItem("encryptedSessionKey", JSON.stringify(encryptedSessionKey));
+            return this.decrypt(encryptedSessionKey);
           }
         }).then((key) => {
           sessionKey = key;

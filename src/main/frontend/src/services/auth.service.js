@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import withSessionKey from "./auth-header";
+
 const API_URL = "http://localhost:8080/api/auth/";
 
 class AuthService {
@@ -8,10 +10,10 @@ class AuthService {
       .post(API_URL + "signin", {
         login,
         password,
-      })
+      }, {params: withSessionKey({})})
       .then(response => {
-        if (response.data.token) {
-          localStorage.setItem("user", JSON.stringify(response.data));
+        if (response) {
+          localStorage.setItem("user", JSON.stringify({login, password}));
         }
         return response.data;
       });
@@ -25,7 +27,7 @@ class AuthService {
     return axios.post(API_URL + "signup", {
       login,
       password,
-    });
+    }, {params: withSessionKey({})});
   }
 
   getCurrentUser() {
