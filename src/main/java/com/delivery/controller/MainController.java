@@ -1,5 +1,6 @@
 package com.delivery.controller;
 
+import com.delivery.dto.SessionKeyRequest;
 import com.delivery.dto.SessionKeyResponse;
 import com.delivery.dto.SignInRequest;
 import com.delivery.dto.SignUpRequest;
@@ -58,7 +59,7 @@ public class MainController {
     private UserRepo userRepo;
 
     @GetMapping("/sessionKey")
-    public ResponseEntity<?> getSessionKey(@RequestParam String openRSAkey) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, UnsupportedEncodingException {
+    public ResponseEntity<?> getSessionKey(@RequestBody SessionKeyRequest request) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, UnsupportedEncodingException {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         keyGenerator.init(256);
         SecretKey sessionKey = keyGenerator.generateKey();
@@ -67,11 +68,11 @@ public class MainController {
         logger.info("Generated session key: " + sessionKeyString);
 
         SessionKeyResponse response = new SessionKeyResponse();
-        response.setEncryptedSessionKey(Base64.getEncoder().encodeToString(RSAUtil.encrypt(sessionKeyString, openRSAkey)));
+        response.setEncryptedSessionKey(Base64.getEncoder().encodeToString(RSAUtil.encrypt(sessionKeyString, request.getOpenRSAkey())));
         logger.info("Encrypted session key: " + response.getEncryptedSessionKey());
 
         sessionsRepo.getSecretKeyMap().put(response.getEncryptedSessionKey(), sessionKey);
-        sessionsRepo.getRsaKeysBySecretKey().put(response.getEncryptedSessionKey(), openRSAkey);
+        sessionsRepo.getRsaKeysBySecretKey().put(response.getEncryptedSessionKey(), request.getOpenRSAkey());
 
         return ResponseEntity.ok(response);
     }
