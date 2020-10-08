@@ -1,12 +1,15 @@
 package com.delivery.controller;
 
-import com.delivery.dto.SessionKeyRequest;
 import com.delivery.dto.SessionKeyResponse;
+import com.delivery.dto.SignInRequest;
+import com.delivery.dto.SignUpRequest;
 import com.delivery.dto.TextDTO;
 import com.delivery.dto.TextsDTO;
 import com.delivery.entity.Text;
+import com.delivery.entity.User;
 import com.delivery.repository.SessionsRepo;
 import com.delivery.repository.TextRepo;
+import com.delivery.repository.UserRepo;
 import com.delivery.service.UserService;
 import com.delivery.util.RSAUtil;
 import org.slf4j.Logger;
@@ -27,11 +30,9 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
+import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
@@ -53,6 +54,9 @@ public class MainController {
     @Autowired
     private TextRepo textRepo;
 
+    @Autowired
+    private UserRepo userRepo;
+
     @GetMapping("/sessionKey")
     public ResponseEntity<?> getSessionKey(@RequestParam String openRSAkey) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, UnsupportedEncodingException {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
@@ -67,6 +71,7 @@ public class MainController {
         logger.info("Encrypted session key: " + response.getEncryptedSessionKey());
 
         sessionsRepo.getSecretKeyMap().put(response.getEncryptedSessionKey(), sessionKey);
+        sessionsRepo.getRsaKeysBySecretKey().put(response.getEncryptedSessionKey(), openRSAkey);
 
         return ResponseEntity.ok(response);
     }
@@ -113,41 +118,35 @@ public class MainController {
         return ResponseEntity.ok().build();
     }
 
-//	@PostMapping("/signin")
-//	public ResponseEntity<?> authenticateUser(@Valid @RequestBody SignInRequest signInRequest) {
-//		User user;
-//		try {
-//			user = userService.signIn(signInRequest.getLogin(), signInRequest.getPassword());
-//		} catch (BadCredentialsException ex) {
-//			return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
-//		}
-//
-//		return ResponseEntity.ok(
-//				new JwtResponse(
-//						jwtUtils.generateJwtToken(user),
-//						user.getLogin(),
-//						user.getRole()
-//				)
-//		);
-//	}
-//
-//	@PostMapping("/signup")
-//	public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) {
-//		try {
-//			userService.signUp(
-//					signUpRequest.getLogin(),
-//					signUpRequest.getPassword(),
-//					signUpRequest.getFirstName(),
-//					signUpRequest.getMiddleName(),
-//					signUpRequest.getLastName(),
-//					signUpRequest.getRole()
-//			);
-//		} catch (LoginIsBusyException e) {
-//			return ResponseEntity
-//					.badRequest()
-//					.body(new MessageResponse("Error: Login is busy!"));
-//		}
-//
-//		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
-//	}
+	@PostMapping("/signin")
+	public ResponseEntity<?> authenticateUser(@Valid @RequestBody SignInRequest signInRequest) throws NoSuchAlgorithmException, IllegalAccessException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
+		User user;
+        user = userService.signIn(signInRequest.getLogin(), signInRequest.getPassword(), signInRequest.getEncryptedSessionKey());
+
+        sessionsRepo.getUserBySecretKey().put(signInRequest.getEncryptedSessionKey(), user.getId());
+
+        return ResponseEntity.ok().build();
+	}
+
+	@PostMapping("/signup")
+	public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
+        User user;
+        user = userService.signUp(signUpRequest.getLogin(), signUpRequest.getPassword(), signUpRequest.getEncryptedSessionKey());
+
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+        keyGenerator.init(256);
+        SecretKey sessionKey = keyGenerator.generateKey();
+
+        String sessionKeyString = Base64.getEncoder().encodeToString(sessionKey.getEncoded());
+        logger.info("Generated session key: " + sessionKeyString);
+
+        SessionKeyResponse response = new SessionKeyResponse();
+        response.setEncryptedSessionKey(Base64.getEncoder().encodeToString(RSAUtil.encrypt(sessionKeyString, user.getOpenRSAkey())));
+        logger.info("Encrypted session key: " + response.getEncryptedSessionKey());
+
+        sessionsRepo.getSecretKeyMap().put(response.getEncryptedSessionKey(), sessionKey);
+        sessionsRepo.getRsaKeysBySecretKey().put(response.getEncryptedSessionKey(), user.getOpenRSAkey());
+
+        return ResponseEntity.ok(response);
+	}
 }
