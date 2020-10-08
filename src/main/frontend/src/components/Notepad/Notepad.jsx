@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Jumbotron from "react-bootstrap/Jumbotron";
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
@@ -14,8 +14,8 @@ const Notepad = () => {
   const [texts, setTexts] = useState([DEFAULT_TEXT_SELECT]);
 
   const updateTexts = useCallback(async () => {
-    const texts = await TextService.getTexts();
-    setTexts([DEFAULT_TEXT_SELECT, ...texts]);
+    const newTexts = await TextService.getTexts();
+    setTexts([DEFAULT_TEXT_SELECT, ...newTexts]);
   }, []);
 
   useEffect(() => {
@@ -40,26 +40,29 @@ const Notepad = () => {
   }, [textId, text]);
   const handleDelete = useCallback(async () => {
     await TextService.removeText(textId);
+    await updateTexts();
     setText("");
     setTextId(DEFAULT_TEXT_SELECT);
   }, [textId]);
   const handleNew = useCallback(async () => {
     await TextService.createText();
-    const newTextId = texts[texts.length - 1] + 1;
-    updateTexts()
+    const newTexts = await TextService.getTexts();
+    setTexts([DEFAULT_TEXT_SELECT, ...newTexts]);
+    const newTextId = newTexts[newTexts.length - 1];
     setText("");
     setTextId(newTextId);
   }, [textId]);
 
   const textNotSelected = textId === DEFAULT_TEXT_SELECT;
 
+  const options = useMemo(() => texts.map((file) => (<option key={file}>{file}</option>)), [JSON.stringify(texts), textId]);
   return (
     <Container>
       <Jumbotron>
         <Form.Group controlId="exampleForm.ControlSelect1">
           <Form.Label>Select file</Form.Label>
-          <Form.Control as="select" onChange={handleTextIdChange}>
-            {texts.map((file) => (<option key={file}>{file}</option>))}
+          <Form.Control as="select" value={textId} onChange={handleTextIdChange}>
+            {options}
           </Form.Control>
         </Form.Group>
         <Form.Group controlId="exampleForm.ControlTextarea1">
