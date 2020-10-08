@@ -34,6 +34,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -72,8 +73,8 @@ public class MainController {
 
     @GetMapping("/texts")
     public ResponseEntity<?> getTexts() {
-        var texts = textRepo.findAll().stream().map(x -> {
-            var text = new TextsDTO.TextDTO();
+        List<TextsDTO.TextDTO> texts = textRepo.findAll().stream().map(x -> {
+            TextsDTO.TextDTO text = new TextsDTO.TextDTO();
             text.setId(x.getId());
             text.setName(x.getName());
             return text;
