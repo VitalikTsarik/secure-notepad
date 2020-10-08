@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import AuthService from "../../services/auth.service";
+import SessionService from "../../services/session.service";
 
 const Header = () => {
   const [user, setUser] = useState(null);
@@ -13,6 +14,13 @@ const Header = () => {
     AuthService.logout();
   }, []);
 
+  const [sessionKey, setSessionKey] = useState();
+  useEffect(() => {
+    (async () => {
+      setSessionKey(await SessionService.getSessionKey())
+    })()
+  }, [])
+
   return (
     <nav className="navbar navbar-expand-sm  navbar-dark bg-dark">
       <div className="container-md">
@@ -20,7 +28,7 @@ const Header = () => {
           Secure Notepad
         </div>
         <div className="navbar-nav mr-auto">
-          {user && (
+          {Boolean(sessionKey) && (
             <li className="nav-item">
               <Link to={"/notepad"} className="nav-link">
                 Notepad

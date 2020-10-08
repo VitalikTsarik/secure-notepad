@@ -19,18 +19,23 @@ class TextService {
 
   async getTextById(textId) {
     return axios
-      .post(API_URL + "text", {
-        textId: textId,
-      }, {params: withSessionKey({})})
+      .get(API_URL + "text", {
+        params: withSessionKey({
+          textId: textId,
+        })
+      })
       .then(response => {
-        return SessionService.decrypt(response.data);
+        const text = response.data;
+        return SessionService.decrypt(text);
       });
   }
 
-  async editText(textId) {
+  async editText(textId, text) {
+    const encryptedText = await SessionService.encrypt(text);
     return axios
       .put(API_URL + "text", {
-        textId: textId
+        id: textId,
+        encryptedText: encryptedText,
       }, {params: withSessionKey({})});
   }
 
@@ -38,17 +43,17 @@ class TextService {
     return axios
       .delete(API_URL + "text", {
         params: withSessionKey({
-          textId: textId
+          id: textId,
         })
       });
   }
 
-  async getTexts(textId) {
+  async getTexts() {
     return axios
       .get(API_URL + "texts", {params: withSessionKey({})})
       .then(response => {
-        const encryptedTexts = response.data;
-        return encryptedTexts.map((text) => SessionService.decrypt(text));
+        const encryptedTexts = response.data.texts;
+        return encryptedTexts.map((text) => SessionService.decryptRsa(text));
       });
   }
 }

@@ -5,6 +5,7 @@ import { JSEncrypt } from "./lib/jsencrypt";
 
 const API_URL = "http://localhost:8080/api/";
 const KEY_SIZE = 1024;
+const IV = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36];
 
 class SessionService {
   async generateKeys() {
@@ -17,47 +18,55 @@ class SessionService {
     return {publicKey, privateKey};
   }
 
-  async getPrivateKey() {
+  getPrivateKey() {
     return JSON.parse(localStorage.getItem("privateKey"));
   }
 
-  async getPublicKey() {
+  getPublicKey() {
     return JSON.parse(localStorage.getItem("publicKey"));
   }
 
-  async decrypt(message) {
+  decryptRsa(message) {
     const crypt = new JSEncrypt();
-    crypt.setPrivateKey(await this.getPrivateKey());
+    crypt.setPrivateKey(this.getPrivateKey());
     return crypt.decrypt(message);
   }
 
-  async getSessionKey() {
+  async decrypt(message) {
+    const sessionKey = await this.getSessionKey();
+    const sessionKeyBytes = Base64.toUint8Array(sessionKey);
+    const messageBytes = Base64.toUint8Array(message);
+    const aesOfb = new ModeOfOperation.ofb(sessionKeyBytes, IV);
+    const decrypted = aesOfb.decrypt(messageBytes);
+    return Base64.decode(Base64.fromUint8Array(decrypted));
+  }
+
+  async getSessionKey(update = false) {
     let sessionKey = JSON.parse(localStorage.getItem("sessionKey"));
-    if (!Boolean(sessionKey)) {
+    if (!Boolean(sessionKey) || update) {
       sessionKey = await axios
         .post(API_URL + "rsa", {
-          openRSAkey: await this.getPublicKey(),
+          openRSAkey: this.getPublicKey(),
         })
         .then(response => {
-          if (response.data.sessionKey) {
-            const encryptedSessionKey = response.data;
+          const encryptedSessionKey = response.data.encryptedSessionKey;
+          if (encryptedSessionKey) {
             localStorage.setItem("encryptedSessionKey", JSON.stringify(encryptedSessionKey));
-            return this.decrypt(encryptedSessionKey);
+            return this.decryptRsa(encryptedSessionKey);
           }
         }).then((key) => {
           sessionKey = key;
           localStorage.setItem("sessionKey", JSON.stringify(sessionKey));
         });
     }
-    const encoder = new TextEncoder();
-    return encoder.encode(sessionKey);
+    return sessionKey;
   }
 
   async encrypt(message) {
     const sessionKey = await this.getSessionKey();
+    const sessionKeyBytes = Base64.toUint8Array(sessionKey);
     const messageBytes = utils.utf8.toBytes(message);
-    const iv = [];
-    const aesOfb = new ModeOfOperation.ofb(sessionKey, iv);
+    const aesOfb = new ModeOfOperation.ofb(sessionKeyBytes, IV);
     const encryptedBytes = aesOfb.encrypt(messageBytes);
     return Base64.encode(encryptedBytes);
   }

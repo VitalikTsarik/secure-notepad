@@ -12,8 +12,8 @@ const Keys = () => {
 
   useEffect(() => {
     (async () => {
-      const publicKey = await SessionService.getPublicKey();
-      const privateKey = await SessionService.getPrivateKey();
+      const publicKey = SessionService.getPublicKey();
+      const privateKey = SessionService.getPrivateKey();
       setPublicKey(publicKey);
       setPrivateKey(privateKey);
     })();
@@ -23,7 +23,7 @@ const Keys = () => {
     const {publicKey, privateKey} = await SessionService.generateKeys();
     setPublicKey(publicKey);
     setPrivateKey(privateKey);
-    SessionService.getSessionKey();
+    SessionService.getSessionKey(true);
   }, []);
 
   return (
