@@ -19,6 +19,7 @@ public class User {
 
     private String login;
     private String password;
+    private String openRSAkey;
 
     public User() {
     }
@@ -47,4 +48,11 @@ public class User {
         this.password = password;
     }
 
+    public String getOpenRSAkey() {
+        return openRSAkey;
+    }
+
+    public void setOpenRSAkey(String openRSAkey) {
+        this.openRSAkey = openRSAkey;
+    }
 }

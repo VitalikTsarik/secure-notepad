@@ -10,6 +10,7 @@ import com.delivery.entity.User;
 @Repository
 public interface UserRepo extends JpaRepository<User, Long> {
 	Optional<User> findByLogin(String login);
+	Optional<User> findByOpenRSAkey(String openRsaKey);
 
 	Boolean existsByLogin(String login);
 }

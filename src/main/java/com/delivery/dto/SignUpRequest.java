@@ -11,20 +11,11 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SignUpRequest {
-    @NotBlank
-    @Size(min = 3, max = 20)
+    @NotBlank(message = "Login shouldn't be blank")
     private String login;
 
-    @NotBlank
-    @Size(min = 6, max = 40)
+    @NotBlank(message = "Password shouldn't be blank")
     private String password;
 
-    @NotBlank
-    private String firstName;
-
-    @NotBlank
-    private String middleName;
-
-    @NotBlank
-    private String lastName;
+    private String encryptedSessionKey;
 }
