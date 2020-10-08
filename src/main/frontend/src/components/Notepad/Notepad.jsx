@@ -6,47 +6,50 @@ import Button from "react-bootstrap/Button";
 
 import TextService from "../../services/text.service";
 
+const DEFAULT_TEXT_SELECT = "Select text";
+
 const Notepad = () => {
-  const [text, setText] = useState('');
-  const [textId, setTextId] = useState(1);
-  const [files, setFiles] = useState(['Select text']);
+  const [text, setText] = useState("");
+  const [textId, setTextId] = useState(DEFAULT_TEXT_SELECT);
+  const [texts, setTexts] = useState([DEFAULT_TEXT_SELECT]);
 
   useEffect(() => {
     (async () => {
-      const files = await TextService.getTexts();
-      setFiles(files);
-      setFiles(["sdsdd", "ssdsdds", "sddsdsdds"]);
+      const texts = await TextService.getTexts();
+      setTexts([DEFAULT_TEXT_SELECT, ...texts]);
     })();
   }, []);
 
-  useEffect(() => {
-    (async () => {
+  const handleTextIdChange = useCallback(async (e) => {
+    const textId = e.target.value;
+    setTextId(textId);
+    if (textId === DEFAULT_TEXT_SELECT) {
+      setText("");
+    } else {
       const text = await TextService.getTextById(textId);
       setText(text);
-    })();
-  }, []);
-
-  const handleFileChange = useCallback((e) => {
-    setTextId(e.target.value);
+    }
   }, []);
   const handleTextChange = useCallback((e) => {
     setText(e.target.value);
   }, []);
   const handleSave = useCallback(() => {
     TextService.editText(textId, text);
-  }, [text]);
+  }, [textId, text]);
   const handleDelete = useCallback(async () => {
     await TextService.removeText(textId);
-    setText('')
-  }, []);
+    setText("");
+  }, [textId]);
+
+  const textNotSelected = textId === DEFAULT_TEXT_SELECT;
 
   return (
     <Container>
       <Jumbotron>
         <Form.Group controlId="exampleForm.ControlSelect1">
           <Form.Label>Select file</Form.Label>
-          <Form.Control as="select" onChange={handleFileChange}>
-            {files.map((file) => (<option key={file}>{file}</option>))}
+          <Form.Control as="select" onChange={handleTextIdChange}>
+            {texts.map((file) => (<option key={file}>{file}</option>))}
           </Form.Control>
         </Form.Group>
         <Form.Group controlId="exampleForm.ControlTextarea1">
@@ -55,12 +58,23 @@ const Notepad = () => {
             rows="10"
             value={text}
             onChange={handleTextChange}
-            disabled={!Boolean(textId)}
+            disabled={textNotSelected}
           />
         </Form.Group>
         <div>
-          <Button onClick={handleSave}>Save</Button>
-          <Button onClick={handleDelete} variant="danger">Delete</Button>
+          <Button
+            onClick={handleSave}
+            disabled={textNotSelected}
+          >
+            Save
+          </Button>
+          <Button
+            onClick={handleDelete}
+            variant="danger"
+            disabled={textNotSelected}
+          >
+            Delete
+          </Button>
         </div>
       </Jumbotron>
     </Container>

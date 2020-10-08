@@ -52,8 +52,7 @@ class TextService {
     return axios
       .get(API_URL + "texts", {params: withSessionKey({})})
       .then(response => {
-        const encryptedTexts = response.data.texts;
-        return encryptedTexts.map((text) => SessionService.decryptRsa(text));
+        return response.data.texts;
       });
   }
 }
