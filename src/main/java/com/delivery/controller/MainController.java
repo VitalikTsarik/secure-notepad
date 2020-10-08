@@ -117,7 +117,7 @@ public class MainController {
 
         Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
-        String decryptedText = new String(cipher.doFinal(textDTO.getEncryptedText().getBytes()));
+        String decryptedText = new String(cipher.doFinal(Base64.getDecoder().decode(textDTO.getEncryptedText())));
         logger.info("Decrypted text: " + decryptedText);
         Text text = new Text();
         text.setText(decryptedText);
@@ -132,7 +132,7 @@ public class MainController {
 
         Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
-        String decryptedText = new String(cipher.doFinal(textDTO.getEncryptedText().getBytes()));
+        String decryptedText = new String(cipher.doFinal(Base64.getDecoder().decode(textDTO.getEncryptedText())));
         logger.info("Decrypted text: " + decryptedText);
         text.setText(decryptedText);
 
