@@ -32,15 +32,6 @@ class SessionService {
     return crypt.decrypt(message);
   }
 
-  async decrypt(message) {
-    const sessionKey = await this.getSessionKey();
-    const sessionKeyBytes = Base64.toUint8Array(sessionKey);
-    const messageBytes = Base64.toUint8Array(message);
-    const aesOfb = new ModeOfOperation.ofb(sessionKeyBytes, IV);
-    const decrypted = aesOfb.decrypt(messageBytes);
-    return Base64.decode(Base64.fromUint8Array(decrypted));
-  }
-
   async getSessionKey(update = false) {
     let sessionKey = JSON.parse(localStorage.getItem("sessionKey"));
     if (!Boolean(sessionKey) || update) {
@@ -62,13 +53,22 @@ class SessionService {
     return sessionKey;
   }
 
+  async decrypt(message) {
+    const sessionKey = await this.getSessionKey();
+    const sessionKeyBytes = Base64.toUint8Array(sessionKey);
+    const messageBytes = Base64.toUint8Array(message);
+    const aesOfb = new ModeOfOperation.ofb(sessionKeyBytes, IV);
+    const decrypted = aesOfb.decrypt(messageBytes);
+    return Base64.decode(Base64.fromUint8Array(decrypted));
+  }
+
   async encrypt(message) {
     const sessionKey = await this.getSessionKey();
     const sessionKeyBytes = Base64.toUint8Array(sessionKey);
-    const messageBytes = utils.utf8.toBytes(message);
+    const messageBytes = Base64.toUint8Array(Base64.encode(message));
     const aesOfb = new ModeOfOperation.ofb(sessionKeyBytes, IV);
     const encryptedBytes = aesOfb.encrypt(messageBytes);
-    return Base64.encode(encryptedBytes);
+    return Base64.fromUint8Array(encryptedBytes);
   }
 }
 

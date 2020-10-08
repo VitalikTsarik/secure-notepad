@@ -43,7 +43,7 @@ class TextService {
     return axios
       .delete(API_URL + "text", {
         params: withSessionKey({
-          id: textId,
+          textId: textId,
         })
       });
   }

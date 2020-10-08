@@ -13,12 +13,14 @@ const Notepad = () => {
   const [textId, setTextId] = useState(DEFAULT_TEXT_SELECT);
   const [texts, setTexts] = useState([DEFAULT_TEXT_SELECT]);
 
-  useEffect(() => {
-    (async () => {
-      const texts = await TextService.getTexts();
-      setTexts([DEFAULT_TEXT_SELECT, ...texts]);
-    })();
+  const updateTexts = useCallback(async () => {
+    const texts = await TextService.getTexts();
+    setTexts([DEFAULT_TEXT_SELECT, ...texts]);
   }, []);
+
+  useEffect(() => {
+    updateTexts();
+  }, [updateTexts]);
 
   const handleTextIdChange = useCallback(async (e) => {
     const textId = e.target.value;
@@ -39,6 +41,14 @@ const Notepad = () => {
   const handleDelete = useCallback(async () => {
     await TextService.removeText(textId);
     setText("");
+    setTextId(DEFAULT_TEXT_SELECT);
+  }, [textId]);
+  const handleNew = useCallback(async () => {
+    await TextService.createText();
+    const newTextId = texts[texts.length - 1] + 1;
+    updateTexts()
+    setText("");
+    setTextId(newTextId);
   }, [textId]);
 
   const textNotSelected = textId === DEFAULT_TEXT_SELECT;
@@ -74,6 +84,12 @@ const Notepad = () => {
             disabled={textNotSelected}
           >
             Delete
+          </Button>
+          <Button
+            onClick={handleNew}
+            variant="success"
+          >
+            New
           </Button>
         </div>
       </Jumbotron>
