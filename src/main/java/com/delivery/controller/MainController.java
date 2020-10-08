@@ -1,6 +1,5 @@
 package com.delivery.controller;
 
-import com.delivery.dto.DeleteTextRequest;
 import com.delivery.dto.SessionKeyRequest;
 import com.delivery.dto.SessionKeyResponse;
 import com.delivery.dto.SignInRequest;
@@ -36,7 +35,6 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
@@ -92,7 +90,7 @@ public class MainController {
     }
 
     @GetMapping("/texts")
-    public ResponseEntity<?> getTexts() {
+    public ResponseEntity<?> getTexts(@RequestParam String encryptedSessionKey) {
         List<Long> texts = textRepo.findAll().stream().map(x -> {
             return x.getId();
         }).collect(Collectors.toList());
@@ -114,8 +112,8 @@ public class MainController {
     }
 
     @PostMapping("/text")
-    public ResponseEntity<?> postText(@RequestBody TextDTO textDTO) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
-        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(textDTO.getEncryptedSessionKey());
+    public ResponseEntity<?> postText(@RequestParam String encryptedSessionKey, @RequestBody TextDTO textDTO) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
+        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
 
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
@@ -128,8 +126,8 @@ public class MainController {
     }
 
     @PutMapping("/text")
-    public ResponseEntity<?> putText(@RequestBody TextWithIdDTO textDTO) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
-        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(textDTO.getEncryptedSessionKey());
+    public ResponseEntity<?> putText(@RequestParam String encryptedSessionKey, @RequestBody TextWithIdDTO textDTO) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
+        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
         Text text = textRepo.findById(textDTO.getId()).get();
 
         Cipher cipher = Cipher.getInstance("AES");
@@ -142,27 +140,27 @@ public class MainController {
     }
 
     @DeleteMapping("/text")
-    public ResponseEntity<?> deleteText(@RequestBody DeleteTextRequest deleteTextRequest) {
-        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(deleteTextRequest.getEncryptedSessionKey());
-        textRepo.deleteById(deleteTextRequest.getId());
+    public ResponseEntity<?> deleteText(@RequestParam String encryptedSessionKey, @RequestParam long textId) {
+        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
+        textRepo.deleteById(textId);
 
         return ResponseEntity.ok().build();
     }
 
 	@PostMapping("/signin")
-	public ResponseEntity<?> authenticateUser(@Valid @RequestBody SignInRequest signInRequest) throws NoSuchAlgorithmException, IllegalAccessException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
+	public ResponseEntity<?> authenticateUser(@RequestParam String encryptedSessionKey, @Valid @RequestBody SignInRequest signInRequest) throws NoSuchAlgorithmException, IllegalAccessException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
 		User user;
-        user = userService.signIn(signInRequest.getLogin(), signInRequest.getPassword(), signInRequest.getEncryptedSessionKey());
+        user = userService.signIn(signInRequest.getLogin(), signInRequest.getPassword(), encryptedSessionKey);
 
-        sessionsRepo.getUserBySecretKey().put(signInRequest.getEncryptedSessionKey(), user.getId());
+        sessionsRepo.getUserBySecretKey().put(encryptedSessionKey, user.getId());
 
         return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
+	public ResponseEntity<?> registerUser(@RequestParam String encryptedSessionKey, @Valid @RequestBody SignUpRequest signUpRequest) throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
         User user;
-        user = userService.signUp(signUpRequest.getLogin(), signUpRequest.getPassword(), signUpRequest.getEncryptedSessionKey());
+        user = userService.signUp(signUpRequest.getLogin(), signUpRequest.getPassword(), encryptedSessionKey);
 
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         keyGenerator.init(256);
