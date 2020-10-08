@@ -10,6 +10,7 @@
     "axios": "^0.19.2",
     "bootstrap": "^4.4.1",
     "formik": "^2.1.4",
+    "js-base64": "^3.5.2",
     "js-crypto-rsa": "^1.0.0",
     "react": "^16.13.0",
     "react-bootstrap": "^1.0.1",

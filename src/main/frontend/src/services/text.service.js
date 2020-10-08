@@ -9,9 +9,9 @@ class TextService {
   async createText(text) {
     const encryptedText = await SessionService.encrypt(text);
     return axios
-      .post(API_URL + "text", withSessionKey({
+      .post(API_URL + "text", {
         encryptedText: encryptedText
-      }), {params: withSessionKey({})})
+      }, {params: withSessionKey({})})
       .then(response => {
         return response.data;
       });

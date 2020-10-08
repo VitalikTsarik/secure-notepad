@@ -1,5 +1,6 @@
 import axios from "axios";
 import { ModeOfOperation, utils } from "aes-js";
+import { Base64 } from "js-base64";
 import { JSEncrypt } from "./lib/jsencrypt";
 
 const API_URL = "http://localhost:8080/api/";
@@ -34,10 +35,8 @@ class SessionService {
     let sessionKey = JSON.parse(localStorage.getItem("sessionKey"));
     if (!Boolean(sessionKey)) {
       sessionKey = await axios
-        .get(API_URL + "sessionKey", {
-          data: {
-            openRSAkey: await this.getPublicKey(),
-          }
+        .post(API_URL + "rsa", {
+          openRSAkey: await this.getPublicKey(),
         })
         .then(response => {
           if (response.data.sessionKey) {
@@ -60,7 +59,7 @@ class SessionService {
     const iv = [];
     const aesOfb = new ModeOfOperation.ofb(sessionKey, iv);
     const encryptedBytes = aesOfb.encrypt(messageBytes);
-    return utils.hex.fromBytes(encryptedBytes);
+    return Base64.encode(encryptedBytes);
   }
 }
 
