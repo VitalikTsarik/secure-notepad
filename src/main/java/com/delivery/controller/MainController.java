@@ -58,8 +58,12 @@ public class MainController {
     @Autowired
     private UserRepo userRepo;
 
-    @GetMapping("/sessionKey")
+    @PostMapping("/rsa")
     public ResponseEntity<?> getSessionKey(@RequestBody SessionKeyRequest request) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, UnsupportedEncodingException {
+        String openRsaKey = request.getOpenRSAkey();
+        openRsaKey = openRsaKey.replace("-----BEGIN PUBLIC KEY-----", "");
+        openRsaKey = openRsaKey.replace("-----END PUBLIC KEY-----", "");
+        request.setOpenRSAkey(openRsaKey);
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         keyGenerator.init(256);
         SecretKey sessionKey = keyGenerator.generateKey();
