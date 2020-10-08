@@ -1,5 +1,6 @@
 package com.delivery.entity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,6 +16,8 @@ public class Text {
     private Long id;
     @ManyToOne
     private User owner;
+
+    @Column(length=1000000)
     private String text;
 
     public final Long getId() {
