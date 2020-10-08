@@ -115,7 +115,7 @@ public class MainController {
     public ResponseEntity<?> postText(@RequestParam String encryptedSessionKey, @RequestBody TextDTO textDTO) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
         SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
 
-        Cipher cipher = Cipher.getInstance("AES");
+        Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
         String decryptedText = new String(cipher.doFinal(textDTO.getEncryptedText().getBytes()));
         logger.info("Decrypted text: " + decryptedText);
@@ -130,7 +130,7 @@ public class MainController {
         SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
         Text text = textRepo.findById(textDTO.getId()).get();
 
-        Cipher cipher = Cipher.getInstance("AES");
+        Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
         String decryptedText = new String(cipher.doFinal(textDTO.getEncryptedText().getBytes()));
         logger.info("Decrypted text: " + decryptedText);
