@@ -45,7 +45,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(maxAge = 3600)
 @RestController
 @RequestMapping("/api")
 public class MainController {
@@ -168,7 +168,7 @@ public class MainController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/signup")
+    @PostMapping("auth/signup")
     public ResponseEntity<?> registerUser(@RequestParam String encryptedSessionKey, @Valid @RequestBody SignUpRequest signUpRequest) throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, InvalidAlgorithmParameterException {
         SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
         Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
@@ -182,7 +182,7 @@ public class MainController {
         return ResponseEntity.ok().build();
     }
 
-	@PostMapping("/signin")
+	@PostMapping("auth/signin")
 	public ResponseEntity<?> authenticateUser(@RequestParam String encryptedSessionKey, @Valid @RequestBody SignInRequest signInRequest) throws NoSuchAlgorithmException, IllegalAccessException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, InvalidAlgorithmParameterException {
         SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
         Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
