@@ -63,6 +63,7 @@ public class MainController {
         String openRsaKey = request.getOpenRSAkey();
         openRsaKey = openRsaKey.replace("-----BEGIN PUBLIC KEY-----", "");
         openRsaKey = openRsaKey.replace("-----END PUBLIC KEY-----", "");
+        openRsaKey = openRsaKey.replace("\n", "");
         request.setOpenRSAkey(openRsaKey);
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         keyGenerator.init(256);
