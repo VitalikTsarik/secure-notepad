@@ -27,14 +27,13 @@ const Notepad = () => {
   }, []);
 
   const handleFileChange = useCallback((e) => {
-    setCurrentFilename(e.target.value);
+    setTextId(e.target.value);
   }, []);
   const handleTextChange = useCallback((e) => {
     setText(e.target.value);
   }, []);
   const handleSave = useCallback(() => {
     TextService.editText(textId, text);
-    console.log(text);
   }, [text]);
   const handleDelete = useCallback(async () => {
     await TextService.removeText(textId);
