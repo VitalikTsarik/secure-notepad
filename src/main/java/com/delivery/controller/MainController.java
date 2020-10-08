@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/")
+@RequestMapping("/api")
 public class MainController {
 
     private final static Logger logger = LoggerFactory.getLogger(MainController.class);
