@@ -17,6 +17,7 @@ import com.delivery.util.RSAUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -91,9 +92,13 @@ public class MainController {
 
     @GetMapping("/texts")
     public ResponseEntity<?> getTexts(@RequestParam String encryptedSessionKey) {
-        List<Long> texts = textRepo.findAll().stream().map(x -> {
-            return x.getId();
-        }).collect(Collectors.toList());
+        long userId = sessionsRepo.getUserBySecretKey().get(encryptedSessionKey);
+        List<Long> texts = textRepo
+                .findAll()
+                .stream()
+                .filter(x -> x.getOwner().getId().equals(userId))
+                .map(Text::getId)
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(new TextsDTO(texts));
     }
@@ -101,7 +106,11 @@ public class MainController {
     @GetMapping("/text")
     public ResponseEntity<?> getText(@RequestParam String encryptedSessionKey, @RequestParam long textId) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
         SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
+        long userId = sessionsRepo.getUserBySecretKey().get(encryptedSessionKey);
         Text text = textRepo.findById(textId).get();
+        if (!text.getOwner().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, IV_SPEC);
@@ -114,6 +123,7 @@ public class MainController {
     @PostMapping("/text")
     public ResponseEntity<?> postText(@RequestParam String encryptedSessionKey, @RequestBody TextDTO textDTO) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
         SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
+        long userId = sessionsRepo.getUserBySecretKey().get(encryptedSessionKey);
 
         Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
@@ -121,15 +131,20 @@ public class MainController {
         logger.info("Decrypted text: " + decryptedText);
         Text text = new Text();
         text.setText(decryptedText);
+        text.setOwner(userRepo.findById(userId).get());
         textRepo.save(text);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(text.getId());
     }
 
     @PutMapping("/text")
     public ResponseEntity<?> putText(@RequestParam String encryptedSessionKey, @RequestBody TextWithIdDTO textDTO) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
         SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
         Text text = textRepo.findById(textDTO.getId()).get();
+        long userId = sessionsRepo.getUserBySecretKey().get(encryptedSessionKey);
+        if (!text.getOwner().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
@@ -143,41 +158,42 @@ public class MainController {
 
     @DeleteMapping("/text")
     public ResponseEntity<?> deleteText(@RequestParam String encryptedSessionKey, @RequestParam long textId) {
-        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
+        Text text = textRepo.findById(textId).get();
+        long userId = sessionsRepo.getUserBySecretKey().get(encryptedSessionKey);
+        if (!text.getOwner().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         textRepo.deleteById(textId);
 
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/signup")
+    public ResponseEntity<?> registerUser(@RequestParam String encryptedSessionKey, @Valid @RequestBody SignUpRequest signUpRequest) throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, InvalidAlgorithmParameterException {
+        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
+        Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
+        String login = new String(cipher.doFinal(Base64.getDecoder().decode(signUpRequest.getLogin())));
+        String password = new String(cipher.doFinal(Base64.getDecoder().decode(signUpRequest.getPassword())));
+
+        User user = userService.signUp(login, password, encryptedSessionKey);
+        logger.info("User registered: " + user.getLogin());
+
+        return ResponseEntity.ok().build();
+    }
+
 	@PostMapping("/signin")
-	public ResponseEntity<?> authenticateUser(@RequestParam String encryptedSessionKey, @Valid @RequestBody SignInRequest signInRequest) throws NoSuchAlgorithmException, IllegalAccessException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
-		User user;
-        user = userService.signIn(signInRequest.getLogin(), signInRequest.getPassword(), encryptedSessionKey);
+	public ResponseEntity<?> authenticateUser(@RequestParam String encryptedSessionKey, @Valid @RequestBody SignInRequest signInRequest) throws NoSuchAlgorithmException, IllegalAccessException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, InvalidAlgorithmParameterException {
+        SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
+        Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
+        String login = new String(cipher.doFinal(Base64.getDecoder().decode(signInRequest.getLogin())));
+        String password = new String(cipher.doFinal(Base64.getDecoder().decode(signInRequest.getPassword())));
+
+        User user = userService.signIn(login, password);
 
         sessionsRepo.getUserBySecretKey().put(encryptedSessionKey, user.getId());
 
         return ResponseEntity.ok().build();
-	}
-
-	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@RequestParam String encryptedSessionKey, @Valid @RequestBody SignUpRequest signUpRequest) throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
-        User user;
-        user = userService.signUp(signUpRequest.getLogin(), signUpRequest.getPassword(), encryptedSessionKey);
-
-        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-        keyGenerator.init(256);
-        SecretKey sessionKey = keyGenerator.generateKey();
-
-        String sessionKeyString = Base64.getEncoder().encodeToString(sessionKey.getEncoded());
-        logger.info("Generated session key: " + sessionKeyString);
-
-        SessionKeyResponse response = new SessionKeyResponse();
-        response.setEncryptedSessionKey(Base64.getEncoder().encodeToString(RSAUtil.encrypt(sessionKeyString, user.getOpenRSAkey())));
-        logger.info("Encrypted session key: " + response.getEncryptedSessionKey());
-
-        sessionsRepo.getSecretKeyMap().put(response.getEncryptedSessionKey(), sessionKey);
-        sessionsRepo.getRsaKeysBySecretKey().put(response.getEncryptedSessionKey(), user.getOpenRSAkey());
-
-        return ResponseEntity.ok(response);
 	}
 }
