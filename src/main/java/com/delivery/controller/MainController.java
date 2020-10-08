@@ -121,6 +121,7 @@ public class MainController {
         logger.info("Decrypted text: " + decryptedText);
         Text text = new Text();
         text.setText(decryptedText);
+        textRepo.save(text);
 
         return ResponseEntity.ok().build();
     }
@@ -135,6 +136,7 @@ public class MainController {
         String decryptedText = new String(cipher.doFinal(Base64.getDecoder().decode(textDTO.getEncryptedText())));
         logger.info("Decrypted text: " + decryptedText);
         text.setText(decryptedText);
+        textRepo.save(text);
 
         return ResponseEntity.ok().build();
     }
