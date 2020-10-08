@@ -41,7 +41,7 @@ public class UserService {
 		return userRepo.save(user);
 	}
 
-	public User signIn(String login, String password, String encryptedSessionKey) throws IllegalAccessException {
+	public User signIn(String login, String password) throws IllegalAccessException {
 		User user = userRepo.findByLogin(login).orElseThrow(() -> new NoSuchElementException("USer not found"));
 		if (!user.getPassword().equals(password)) {
 			throw new IllegalAccessException("Password is wrong");
