@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class TextWithIdDTO {
     private Long id;
     private String encryptedText;
-    private String encryptedSessionKey;
 }
