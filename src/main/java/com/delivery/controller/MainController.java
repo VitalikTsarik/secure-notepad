@@ -31,8 +31,10 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -95,12 +97,12 @@ public class MainController {
     }
 
     @GetMapping("/text")
-    public ResponseEntity<?> getText(@RequestParam String encryptedSessionKey, @RequestParam long textId) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    public ResponseEntity<?> getText(@RequestParam String encryptedSessionKey, @RequestParam long textId) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
         SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
         Text text = textRepo.findById(textId).get();
 
         Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(new byte[]{21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,35, 36}));
 
         byte[] encrypted = cipher.doFinal(text.getText().getBytes());
 
