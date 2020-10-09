@@ -169,7 +169,7 @@ public class MainController {
     }
 
     @PostMapping("auth/signup")
-    public ResponseEntity<?> registerUser(@RequestParam String encryptedSessionKey, @Valid @RequestBody SignUpRequest signUpRequest) throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, InvalidAlgorithmParameterException {
+    public ResponseEntity<?> registerUser(@RequestParam String encryptedSessionKey, @Valid @RequestBody SignUpRequest signUpRequest) throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, InvalidAlgorithmParameterException, IllegalAccessException {
         SecretKey secretKey = sessionsRepo.getSecretKeyMap().get(encryptedSessionKey);
         Cipher cipher = Cipher.getInstance("AES/OFB/NoPadding");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, IV_SPEC);
@@ -179,7 +179,8 @@ public class MainController {
         User user = userService.signUp(login, password, encryptedSessionKey);
         logger.info("User registered: " + user.getLogin());
 
-        return ResponseEntity.ok().build();
+        SignInRequest signInRequest = new SignInRequest(signUpRequest.getLogin(), signUpRequest.getPassword());
+        return authenticateUser(encryptedSessionKey, signInRequest);
     }
 
 	@PostMapping("auth/signin")
