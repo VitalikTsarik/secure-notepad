@@ -26,6 +26,10 @@ class SessionService {
     return JSON.parse(localStorage.getItem("publicKey"));
   }
 
+  getCurrentSessionKey() {
+    return JSON.parse(localStorage.getItem("sessionKey"));
+  }
+
   decryptRsa(message) {
     const crypt = new JSEncrypt();
     crypt.setPrivateKey(this.getPrivateKey());

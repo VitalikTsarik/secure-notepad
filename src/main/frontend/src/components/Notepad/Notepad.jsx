@@ -60,7 +60,7 @@ const Notepad = () => {
     <Container>
       <Jumbotron>
         <Form.Group controlId="exampleForm.ControlSelect1">
-          <Form.Label>Select file</Form.Label>
+          <Form.Label>Select text</Form.Label>
           <Form.Control as="select" value={textId} onChange={handleTextIdChange}>
             {options}
           </Form.Control>

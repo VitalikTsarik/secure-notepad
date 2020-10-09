@@ -23,7 +23,8 @@ const Keys = () => {
     const {publicKey, privateKey} = await SessionService.generateKeys();
     setPublicKey(publicKey);
     setPrivateKey(privateKey);
-    SessionService.getSessionKey(true);
+    await SessionService.getSessionKey(true);
+    window.location.reload();
   }, []);
 
   return (

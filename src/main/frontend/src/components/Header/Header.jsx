@@ -16,10 +16,8 @@ const Header = () => {
 
   const [sessionKey, setSessionKey] = useState();
   useEffect(() => {
-    (async () => {
-      setSessionKey(await SessionService.getSessionKey())
-    })()
-  }, [])
+    setSessionKey(SessionService.getCurrentSessionKey());
+  }, []);
 
   return (
     <nav className="navbar navbar-expand-sm  navbar-dark bg-dark">
@@ -28,7 +26,7 @@ const Header = () => {
           Secure Notepad
         </div>
         <div className="navbar-nav mr-auto">
-          {Boolean(sessionKey) && (
+          {(Boolean(sessionKey) && Boolean(user)) && (
             <li className="nav-item">
               <Link to={"/notepad"} className="nav-link">
                 Notepad
@@ -42,31 +40,33 @@ const Header = () => {
           </li>
         </div>
         {user ? (
-          <div className="navbar-nav ml-auto">
-            <li className="nav-item">
-              <div className="navbar-text">
-                {user.login}
-              </div>
-            </li>
-            <li className="nav-item">
-              <a href="/login" className="nav-link" onClick={logOut}>
-                LogOut
-              </a>
-            </li>
-          </div>
+          (<div className="navbar-nav ml-auto">
+              <li className="nav-item">
+                <div className="navbar-text">
+                  {user.login}
+                </div>
+              </li>
+              <li className="nav-item">
+                <a href="/keys" className="nav-link" onClick={logOut}>
+                  LogOut
+                </a>
+              </li>
+            </div>
+          )
         ) : (
-          <div className="navbar-nav ml-auto">
-            <li className="nav-item">
-              <Link to={"/login"} className="nav-link">
-                Login
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to={"/register"} className="nav-link">
-                Sign Up
-              </Link>
-            </li>
-          </div>
+          Boolean(sessionKey) && (<div className="navbar-nav ml-auto">
+              <li className="nav-item">
+                <Link to={"/login"} className="nav-link">
+                  Login
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link to={"/register"} className="nav-link">
+                  Sign Up
+                </Link>
+              </li>
+            </div>
+          )
         )}
       </div>
     </nav>

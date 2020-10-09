@@ -44,6 +44,8 @@ export default class Register extends Component {
             message: "User successfully registered",
             successful: true
           });
+          this.props.history.push("/notepad");
+          window.location.reload();
         },
         error => {
           const resMessage =
