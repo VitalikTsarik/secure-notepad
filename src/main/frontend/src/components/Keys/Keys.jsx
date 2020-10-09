@@ -5,6 +5,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 
 import SessionService from "../../services/session.service";
+import AuthService from "../../services/auth.service";
 
 const Keys = () => {
   const [privateKey, setPrivateKey] = useState("");
@@ -20,6 +21,7 @@ const Keys = () => {
   }, []);
 
   const handleClick = useCallback(async () => {
+    AuthService.logout()
     const {publicKey, privateKey} = await SessionService.generateKeys();
     setPublicKey(publicKey);
     setPrivateKey(privateKey);
