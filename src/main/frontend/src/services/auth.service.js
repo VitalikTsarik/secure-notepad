@@ -6,9 +6,9 @@ import SessionService from "./session.service";
 const API_URL = "http://localhost:8080/api/auth/";
 
 class AuthService {
-  login(login, password) {
-    const encryptedLogin = SessionService.encrypt(login);
-    const encryptedPassword = SessionService.encrypt(password);
+  async login(login, password) {
+    const encryptedLogin = await SessionService.encrypt(login);
+    const encryptedPassword = await SessionService.encrypt(password);
     return axios
       .post(API_URL + "signin", {
         login: encryptedLogin,
@@ -23,11 +23,15 @@ class AuthService {
 
   logout() {
     localStorage.removeItem("user");
+    localStorage.removeItem("publicKey")
+    localStorage.removeItem("privateKey")
+    localStorage.removeItem("encryptedSessionKey")
+    localStorage.removeItem("sessionKey")
   }
 
-  register(login, password) {
-    const encryptedLogin = SessionService.encrypt(login);
-    const encryptedPassword = SessionService.encrypt(password);
+  async register(login, password) {
+    const encryptedLogin = await SessionService.encrypt(login);
+    const encryptedPassword = await SessionService.encrypt(password);
     return axios
       .post(API_URL + "signup", {
         login: encryptedLogin,

@@ -4,7 +4,7 @@ import Input from "react-validation/build/input";
 import CheckButton from "react-validation/build/button";
 
 import AuthService from "../../services/auth.service";
-import { required, username, password } from "./validation";
+import { password, required, username } from "./validation";
 
 export default class Register extends Component {
   constructor(props) {
@@ -41,7 +41,7 @@ export default class Register extends Component {
       ).then(
         response => {
           this.setState({
-            message: response.data.message,
+            message: "User successfully registered",
             successful: true
           });
         },
